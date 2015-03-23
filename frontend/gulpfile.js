@@ -1,17 +1,36 @@
-var gulp = require('gulp');
-var rename = require('gulp-rename');
-var uglify = require('gulp-uglify');
+var del = 			require('del');
+var gulp = 			require('gulp');
+var concat = 		require('gulp-concat');
+var minifyCss = 	require('gulp-minify-css');
+var minifyHtml = 	require('gulp-minify-html');
+var rename = 		require('gulp-rename');
+var rev = 			require('gulp-rev');
+var uglify = 		require('gulp-uglify');
+var usemin = 		require('gulp-usemin');
+var wiredep = 		require('wiredep').stream;
+
 
 var SRC = 'app/';
-var DEST = 'dest/';
+var DIST = 'dist/';
 
-gulp.task('build', function() {
-	return gulp.src(SRC + 'app.Module.js')
-		// This will output the non-minified version
-		.pipe(gulp.dest(DEST))
-		
-		// This will minify and rename to foo.min.js
-		.pipe(uglify())
-		.pipe(rename({ extname: '.min.js' }))
-		.pipe(gulp.dest(DEST));
+gulp.task('clean:dist', function () {
+  return del([
+    //  we use a globbing pattern to match everything inside the `destination` folder
+    DIST + '**',
+  ]);
 });
+
+gulp.task('usemin', function() {
+	gulp.src(['./index.html', './signin2.html'])
+		.pipe(usemin({
+			css: [minifyCss(), 'concat'],
+			html: [minifyHtml({empty: true})],
+			js: [uglify(), rev()],
+			js2: [uglify(), rev()]
+		}))
+		.pipe(gulp.dest(DIST));
+});
+
+gulp.task('build', [
+	'clean:dist', 'usemin'
+]);
